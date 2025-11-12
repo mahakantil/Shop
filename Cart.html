@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Your Shopping Cart</title>
+    <style>
+        body {
+            font-family: "Poppins", sans-serif;
+            background-color: #e9ebd7;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navbar & Main Layout (Mostly Unchanged) */
+        .navbar {
+            width: 97%;
+            background-color: #0d0d0d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar .logo { color: #f8f3f3; font-size: 24px; font-weight: 600; }
+        .back-btn {
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .back-btn:hover { background-color: #333; }
+
+        .cart-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .cart-title { width: 100%; text-align: center; margin-bottom: 30px; font-size: 28px; font-weight: 700; }
+        
+        .left-panel { flex: 2; min-width: 300px; }
+        .order-summary {
+            flex: 1;
+            min-width: 250px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            height: fit-content;
+        }
+
+        /* Delivery Address Container Styles */
+        .delivery-address-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            padding: 0;
+        }
+
+        .section-header {
+            padding: 15px 20px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-header.active { background-color: #f7f7f7; }
+
+        /* Saved Address Display */
+        #savedAddressDisplay {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .saved-address-info {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .address-actions { margin-top: 15px; }
+        .address-actions button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-right: 10px;
+        }
+        .address-actions button:hover { opacity: 0.9; }
+
+
+        /* Address Input Form */
+        #addressInputForm {
+            padding: 20px;
+            display: none; /* Hidden by default, shown when editing/adding */
+            border-top: 1px solid #eee;
+        }
+        #addressInputForm input, #addressInputForm select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+        .form-row { display: flex; gap: 10px; }
+        .form-row > * { flex: 1; }
+        
+        .address-type-radios { 
+            margin: 15px 0; 
+            /* Added to wrap the inline labels and allow them to flex */
+            display: flex; 
+        }
+
+        /* 🔥 FIX APPLIED HERE: Use flexbox on the label itself */
+        .address-type-radios label { 
+            margin-right: 20px; 
+            display: flex; /* Makes the label a flexible container */
+            align-items: center; /* Vertically centers content (input and text) */
+            line-height: normal; /* Resets line height which sometimes causes misalignment */
+        }
+        
+        /* Ensures the radio button doesn't take full width and aligns well */
+        .address-type-radios input[type="radio"] {
+            width: auto; 
+            height: auto;
+            margin-right: 5px; /* Adds space between the dot and the text */
+            margin-top: 0; 
+            margin-bottom: 0;
+            /* Ensures it only contributes to the alignment, not margin-bottom */
+        }
+        /* ------------------------------------------------------------------ */
+
+
+        .save-deliver-btn {
+            background-color: #ff5722;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .cancel-btn {
+            background: none;
+            border: none;
+            color: #007bff;
+            padding: 12px 15px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Cart Item Styling */
+        .cart-items {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .cart-item-card {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+        .cart-item-card:last-child { border-bottom: none; }
+        
+        /* --- MODIFIED: Image Size Control --- */
+        .cart-item-card img {
+            width: 80px; /* Smaller fixed width */
+            height: 80px; /* Maintain aspect ratio (or use object-fit: cover) */
+            object-fit: contain; 
+            margin-right: 15px;
+            border: 1px solid #f0f0f0;
+            border-radius: 5px;
+        }
+        /* ------------------------------------- */
+
+        .item-details { flex-grow: 1; }
+        .item-details h4 { margin: 0 0 5px 0; font-size: 18px; color: #333; }
+        .item-details p { margin: 0 0 10px 0; font-size: 14px; color: #666; }
+        .item-price { font-weight: 600; font-size: 18px; color: #0d0d0d; margin-left: 20px; }
+        
+        .quantity-control {
+            display: flex;
+            align-items: center;
+        }
+        .qty-btn {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+            margin: 0 10px;
+        }
+        .remove-item-btn {
+            background: none;
+            border: none;
+            color: #ff0000;
+            font-size: 24px;
+            cursor: pointer;
+            margin-left: 15px;
+        }
+        
+        /* Summary Styling (Re-using existing summary-row class) */
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            font-size: 16px;
+        }
+        .summary-total {
+            font-weight: bold;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+            margin-top: 10px;
+            font-size: 18px;
+        }
+
+        /* Checkout Button Styling */
+        .checkout-btn {
+            width: 100%; padding: 15px; background-color: #4a778c; color: white; border: none; border-radius: 8px;
+            font-size: 18px; font-weight: bold; cursor: not-allowed; margin-top: 20px; opacity: 0.6;
+            transition: all 0.3s;
+        }
+        .checkout-btn:not([disabled]) {
+            background-color: #28a745; cursor: pointer; opacity: 1;
+        }
+
+        /* --- Confirmation Container Styles (Unchanged) --- */
+        #confirmationContainer {
+            display: none; /* Hidden by default */
+            max-width: 800px;
+            margin: 80px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+        .check-sign {
+            font-size: 150px;
+            color: #28a745; 
+            margin-bottom: 20px;
+            line-height: 1;
+            font-weight: bold;
+        }
+        .confirmation-details h3 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .confirmation-info {
+            text-align: left;
+            margin: 30px auto;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            width: 90%;
+            background-color: #f9f9f9;
+        }
+        .confirmation-info p {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+        .confirmation-info strong {
+            display: inline-block;
+            min-width: 120px;
+            color: #0d0d0d;
+        }
+        .confirmation-address {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+        }
+        .confirmation-address h4 {
+            margin: 10px 0;
+            color: #007bff;
+        }
+        .go-home-btn {
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .cart-container { flex-direction: column; margin: 20px; }
+            .cart-item-card { flex-wrap: wrap; justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">👟 Your Cart</div>
+        <a href="Shop-Item.html" class="back-btn">← Continue Shopping</a>
+    </nav>
+
+    <div class="cart-container" id="mainCartContent">
+        <h2 class="cart-title">🛒 Your Shopping Cart</h2>
+
+        <div class="left-panel">
+            
+            <div class="delivery-address-section">
+                <div class="section-header active" id="addressHeader">
+                    <span>2. DELIVERY ADDRESS</span>
+                    <button class="cancel-btn" id="editAddressBtn" style="display: none;">EDIT</button>
+                </div>
+                
+                <div id="savedAddressDisplay">
+                    <p class="saved-address-info" id="currentAddressInfo">No address saved yet. Please add one.</p>
+                    <div class="address-actions">
+                        <button id="deliverHereBtn" style="display: none;">DELIVER HERE</button>
+                        <button id="addAddressBtn">ADD A NEW ADDRESS</button>
+                    </div>
+                </div>
+
+                <div id="addressInputForm">
+                    <form id="address-form">
+                        <div class="form-row">
+                            <input type="text" id="fullName" placeholder="Name" required>
+                            <input type="tel" id="phone" placeholder="10-digit mobile number" required>
+                        </div>
+                        <div class="form-row">
+                            <input type="text" id="zipCode" placeholder="Pincode" required>
+                            <input type="text" id="locality" placeholder="Locality">
+                        </div>
+                        <input type="text" id="addressLine1" placeholder="Address (Area and Street)" required>
+                        <div class="form-row">
+                            <input type="text" id="city" placeholder="City/District/Town" required>
+                            <select id="stateSelect" required>
+                                <option value="">--Select State--</option>
+                                <option value="Haryana">Haryana</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Maharashtra">Maharashtra</option>
+                                </select>
+                        </div>
+                        <input type="text" id="landmark" placeholder="Landmark (Optional)">
+                        <input type="text" id="alternatePhone" placeholder="Alternate Phone (Optional)">
+
+                        <div class="address-type-radios">
+                            <label for="typeHome">
+                                <input type="radio" id="typeHome" name="addressType" value="Home" checked>
+                                Home (All day delivery)
+                            </label>
+                            <label for="typeWork">
+                                <input type="radio" id="typeWork" name="addressType" value="Work">
+                                Work (Delivery between 10 AM - 5 PM)
+                            </label>
+                        </div>
+                        
+                        <div>
+                            <button type="submit" class="save-deliver-btn">SAVE AND DELIVER HERE</button>
+                            <button type="button" class="cancel-btn" onclick="cancelAddressEdit()">CANCEL</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="cart-items" id="cartItemsContainer">
+                <div class="empty-cart-message" id="emptyCartMessage" style="display: none;">
+                    Your cart is empty! Start adding some cool sneakers!
+                </div>
+            </div>
+        </div>
+
+        <div class="order-summary">
+            <h3>Order Summary <span id="itemCountDisplay"></span></h3>
+            <div id="summaryDetails"></div>
+            
+            <div class="payment-mode">
+                <h4>Select Payment Mode</h4>
+
+                <label for="cod">
+                    <input type="radio" id="cod" name="paymentMethod" value="Cash on Delivery (COD)">
+                    Cash on Delivery (COD)
+                </label>
+            </div>
+            
+            <button class="checkout-btn" id="checkoutBtn" onclick="proceedToPayment()" disabled>
+                Place Order & Pay
+            </button>
+        </div>
+    </div>
+    <div id="confirmationContainer">
+        <div class="check-sign">✔</div>
+        <div class="confirmation-details">
+            <h3>Order Confirmed Successfully!</h3>
+            <p>Thank you for your purchase. Your order details are below.</p>
+
+            <div class="confirmation-info">
+                <p><strong>Order ID:</strong> <span id="confOrderId"></span></p>
+                <p><strong>Order Total:</strong> <span id="confOrderTotal"></span></p>
+                <p><strong>Total Items:</strong> <span id="confTotalItems"></span></p>
+                <p><strong>Payment Method:</strong> <span id="confPaymentMethod"></span></p>
+
+                <div class="confirmation-address">
+                    <h4>Shipping Address</h4>
+                    <p id="confFullName"></p>
+                    <p id="confAddressLine1"></p>
+                    <p id="confCityZip"></p>
+                    <p><strong>Phone:</strong> <span id="confPhone"></span></p>
+                </div>
+            </div>
+            <button class="go-home-btn" onclick="window.location.href='Shop-Item.html'">
+                Continue Shopping
+            </button>
+        </div>
+    </div>
+    <script>
+        const allProducts = [
+            { id: 1, name: "Nike Air Zoom", price: 30000, img: "Jordan Chicago Jordan Red Jordan Pink Jordan.jpg" },
+            { id: 2, name: "Adidas Ultraboost", price: 15000, img: "download (1).jpg" },
+            { id: 3, name: "Puma RS-X", price: 6000, img: "Puma OG Speedcat.jpg" },
+            { id: 4, name: "Onituska Tiger Classic", price: 4000, img: "onitsuka.jpg" }
+        ];
+
+        let cart = {};
+        const SHIPPING_FEE = 500;
+        
+        // DOM Elements
+        const mainCartContent = document.getElementById('mainCartContent');
+        const confirmationContainer = document.getElementById('confirmationContainer');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        const addressForm = document.getElementById('address-form');
+        const addressInputForm = document.getElementById('addressInputForm');
+        const savedAddressDisplay = document.getElementById('savedAddressDisplay');
+        const currentAddressInfo = document.getElementById('currentAddressInfo');
+        const deliverHereBtn = document.getElementById('deliverHereBtn');
+        const addAddressBtn = document.getElementById('addAddressBtn');
+        const editAddressBtn = document.getElementById('editAddressBtn');
+        const addressHeader = document.getElementById('addressHeader');
+
+
+        function loadCart() {
+            const storedCart = localStorage.getItem('shoppingCart');
+            if (storedCart) { cart = JSON.parse(storedCart); }
+            
+            // Try to load saved address from sessionStorage on load
+            if (sessionStorage.getItem('shippingAddress')) {
+                displaySavedAddress();
+            }
+        }
+
+        function saveCart() {
+            localStorage.setItem('shoppingCart', JSON.stringify(cart));
+            renderCart(); 
+        }
+
+        function formatPrice(price) {
+            return `Rs ${price.toLocaleString('en-IN')}`;
+        }
+        
+        function getTotalItems() {
+            return Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+        }
+
+        // --- Address Handling Functions ---
+
+        function displaySavedAddress(addressData = null) {
+            const address = addressData || JSON.parse(sessionStorage.getItem('shippingAddress'));
+            
+            if (address) {
+                // Display the saved address info
+                currentAddressInfo.innerHTML = `
+                    <strong>${address.fullName}</strong> (${address.phone})<br>
+                    ${address.addressLine1}, ${address.locality}<br>
+                    ${address.city}, ${address.state} - ${address.zipCode}
+                `;
+                addressInputForm.style.display = 'none';
+                savedAddressDisplay.style.display = 'block';
+                deliverHereBtn.style.display = 'inline-block';
+                addAddressBtn.style.display = 'none'; // Deliver Here acts as the main action
+                editAddressBtn.style.display = 'inline-block';
+            } else {
+                // No address saved, show the Add Address button
+                currentAddressInfo.textContent = 'No address saved yet. Please add one.';
+                savedAddressDisplay.style.display = 'block';
+                deliverHereBtn.style.display = 'none';
+                addAddressBtn.style.display = 'inline-block';
+                editAddressBtn.style.display = 'none';
+            }
+            updateCheckoutState(); 
+        }
+
+        function toggleAddressInput(show) {
+            addressInputForm.style.display = show ? 'block' : 'none';
+            savedAddressDisplay.style.display = show ? 'none' : 'block';
+            addressHeader.classList.toggle('active', show);
+            editAddressBtn.style.display = show ? 'none' : (sessionStorage.getItem('shippingAddress') ? 'inline-block' : 'none');
+            
+            // If showing the form, clear previous data
+            if (show) addressForm.reset(); 
+        }
+        
+        function cancelAddressEdit() {
+            // If an address is already saved, go back to the saved display
+            if (sessionStorage.getItem('shippingAddress')) {
+                displaySavedAddress();
+            } else {
+                // If no address was saved, just hide the form and show the prompt
+                toggleAddressInput(false);
+                displaySavedAddress(null);
+            }
+        }
+
+        function saveAndDeliverAddress(e) {
+            e.preventDefault(); 
+
+            // Simple validation
+            const inputs = ['fullName', 'phone', 'zipCode', 'addressLine1', 'city', 'stateSelect'];
+            let isValid = true;
+            inputs.forEach(id => {
+                const input = document.getElementById(id);
+                if (input && input.value.trim() === '') {
+                    isValid = false;
+                    // You could add error styling here
+                }
+            });
+
+            if (!isValid) {
+                alert('🚨 Please fill out all required fields (Name, Phone, Pincode, Address, City, State).');
+                return;
+            }
+            
+            const addressData = {
+                fullName: document.getElementById('fullName').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                zipCode: document.getElementById('zipCode').value.trim(),
+                locality: document.getElementById('locality').value.trim(),
+                addressLine1: document.getElementById('addressLine1').value.trim(),
+                city: document.getElementById('city').value.trim(),
+                state: document.getElementById('stateSelect').value,
+                landmark: document.getElementById('landmark').value.trim(),
+                alternatePhone: document.getElementById('alternatePhone').value.trim(),
+                addressType: document.querySelector('input[name="addressType"]:checked').value
+            };
+            
+            // Store and Display
+            sessionStorage.setItem('shippingAddress', JSON.stringify(addressData));
+            displaySavedAddress(addressData); // Update the displayed address
+            toggleAddressInput(false); // Hide the form
+
+            // REMOVED: alert('Address saved and selected for delivery!');
+            // Removing the alert ensures the address is saved without the popup.
+        }
+
+        // Event listeners for the address actions
+        addAddressBtn.addEventListener('click', () => toggleAddressInput(true));
+        editAddressBtn.addEventListener('click', () => toggleAddressInput(true));
+        deliverHereBtn.addEventListener('click', () => alert('This address is already selected!'));
+        addressForm.addEventListener('submit', saveAndDeliverAddress);
+        
+        // --- End Address Handling Functions ---
+
+
+        function renderCartItems() {
+            const cartItemsContainer = document.getElementById('cartItemsContainer');
+            const emptyCartMessage = document.getElementById('emptyCartMessage');
+            cartItemsContainer.innerHTML = '';
+            let hasItems = false;
+            
+            for (const productId in cart) {
+                const quantity = cart[productId];
+                if (quantity > 0) {
+                    hasItems = true;
+                    const product = allProducts.find(p => p.id == productId);
+                    if (!product) continue;
+                    const itemTotal = product.price * quantity;
+                    const itemCard = document.createElement('div');
+                    itemCard.classList.add('cart-item-card');
+                    itemCard.innerHTML = `
+                        <img src="${product.img}" alt="${product.name}">
+                        <div class="item-details">
+                            <h4>${product.name}</h4>
+                            <p>Unit Price: ${formatPrice(product.price)}</p>
+                            <div class="quantity-control">
+                                <button class="qty-btn" data-id="${productId}" data-action="decrement">-</button>
+                                <span>${quantity}</span>
+                                <button class="qty-btn" data-id="${productId}" data-action="increment">+</button>
+                            </div>
+                        </div>
+                        <div class="item-price">${formatPrice(itemTotal)}</div>
+                        <button class="remove-item-btn" data-id="${productId}" data-action="remove_all">
+                            &times;
+                        </button>
+                    `;
+                    cartItemsContainer.appendChild(itemCard);
+                }
+            }
+            
+            emptyCartMessage.style.display = hasItems ? 'none' : 'block';
+            if (!hasItems) {
+                cartItemsContainer.appendChild(emptyCartMessage);
+            }
+            updateCheckoutState(); 
+        }
+
+        function renderOrderSummary() {
+            const summaryDetails = document.getElementById('summaryDetails');
+            const itemCountDisplay = document.getElementById('itemCountDisplay');
+            let subtotal = 0;
+            let totalItems = getTotalItems(); 
+
+            for (const productId in cart) {
+                const quantity = cart[productId];
+                if (quantity > 0) {
+                    const product = allProducts.find(p => p.id == productId);
+                    if (product) {
+                        subtotal += product.price * quantity;
+                    }
+                }
+            }
+            
+            const shipping = subtotal > 0 ? SHIPPING_FEE : 0;
+            const orderTotal = subtotal + shipping;
+            
+            itemCountDisplay.textContent = `(${totalItems} item${totalItems !== 1 ? 's' : ''})`;
+
+            summaryDetails.innerHTML = `
+                <div class="summary-row">
+                    <span>Subtotal (${totalItems} items)</span>
+                    <span>${formatPrice(subtotal)}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping & Handling</span>
+                    <span>${shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>
+                </div>
+                <div class="summary-total summary-row">
+                    <span>Order Total:</span>
+                    <span style="color: #007bff;">${formatPrice(orderTotal)}</span>
+                </div>
+            `;
+            updateCheckoutState(); 
+        }
+
+        function renderCart() {
+            renderCartItems();
+            renderOrderSummary();
+        }
+
+        function updateCheckoutState() {
+            const totalItems = getTotalItems();
+            const addressSaved = sessionStorage.getItem('shippingAddress') !== null;
+            
+            if (totalItems > 0 && addressSaved) {
+                checkoutBtn.disabled = false;
+            } else {
+                checkoutBtn.disabled = true;
+            }
+        }
+        
+        // NEW FUNCTION: Populates and shows the confirmation screen
+        function displayConfirmation(orderData) {
+            // Hide the main cart content
+            mainCartContent.style.display = 'none'; 
+            
+            // Populate the confirmation details
+            document.getElementById('confOrderId').textContent = orderData.orderId;
+            document.getElementById('confOrderTotal').textContent = formatPrice(orderData.orderTotal);
+            document.getElementById('confTotalItems').textContent = orderData.totalItems;
+            document.getElementById('confPaymentMethod').textContent = orderData.paymentMethod;
+            
+            // Address details
+            const addr = orderData.address;
+            document.getElementById('confFullName').innerHTML = `<strong>${addr.fullName}</strong> (${addr.addressType})`;
+            document.getElementById('confAddressLine1').textContent = `${addr.addressLine1}, ${addr.locality}, ${addr.landmark}`;
+            document.getElementById('confCityZip').textContent = `${addr.city}, ${addr.state} - ${addr.zipCode}`;
+            document.getElementById('confPhone').textContent = addr.phone;
+
+            // Show the confirmation container
+            confirmationContainer.style.display = 'block'; 
+        }
+
+        function proceedToPayment() {
+            let totalItems = getTotalItems();
+            if (totalItems === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            if (sessionStorage.getItem('shippingAddress') === null) {
+                alert('Please save a delivery address first.');
+                toggleAddressInput(true); // Open the form to prompt the user
+                return;
+            }
+
+            const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked');
+            if (!selectedPayment) {
+                alert('Please select a payment method before placing your order.');
+                return;
+            }
+
+            // Calculate Totals
+            let subtotal = 0;
+            for (const productId in cart) {
+                const quantity = cart[productId];
+                if (quantity > 0) {
+                    const product = allProducts.find(p => p.id == productId);
+                    if (product) {
+                        subtotal += product.price * quantity;
+                    }
+                }
+            }
+            const shipping = subtotal > 0 ? SHIPPING_FEE : 0;
+            const orderTotal = subtotal + shipping;
+            const orderId = `#${Math.floor(Math.random() * 100000) + 10000}`;
+            
+            const paymentMethod = selectedPayment.value;
+            const address = JSON.parse(sessionStorage.getItem('shippingAddress'));
+
+            // 1. Prepare Order Data
+            const orderData = {
+                orderId: orderId,
+                orderTotal: orderTotal,
+                totalItems: totalItems,
+                paymentMethod: paymentMethod,
+                address: address
+            };
+
+            // 2. Display the confirmation screen
+            displayConfirmation(orderData);
+            
+            // 3. Clear the cart and saved data
+            cart = {};
+            localStorage.removeItem('shoppingCart'); 
+            sessionStorage.removeItem('shippingAddress'); 
+            updateCheckoutState(); 
+        }
+
+        // Event handler for quantity changes (unchanged)
+        document.addEventListener('click', (e) => {
+            const productId = e.target.getAttribute('data-id');
+            const action = e.target.getAttribute('data-action');
+
+            if (!productId || !action) return;
+
+            const id = parseInt(productId);
+            
+            if (action === 'increment') {
+                cart[id] = (cart[id] || 0) + 1;
+            } else if (action === 'decrement') {
+                if (cart[id] && cart[id] > 0) {
+                    cart[id]--;
+                    if (cart[id] === 0) delete cart[id];
+                }
+            } else if (action === 'remove_all') {
+                delete cart[id];
+            }
+            
+            saveCart();
+            updateCheckoutState(); 
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCart();
+            renderCart();
+            
+            // Initial view: Show the form if no address is saved, otherwise show the saved address
+            if(sessionStorage.getItem('shippingAddress')) {
+                displaySavedAddress();
+            } else {
+                toggleAddressInput(true);
+            }
+            updateCheckoutState(); 
+        });
+    </script>
+</body>
+</html>

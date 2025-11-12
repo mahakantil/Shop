@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>THE SNEAKER SPHERE</title>
+    <style>
+        body {
+            margin:0;
+            padding: 0;
+            font-family: "Poppins", sans-serif;
+            background-color: #e9ebd7;
+        }
+
+        .navbar {
+            width: 97%;
+            background-color: black;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar .logo {
+            color: #f8f3f3;
+            font-size: 24px;
+            font-weight: 600; 
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 768px) {
+            .menu-icon {
+                display: block;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+            }
+        }
+        .menu-icon { display: none; }
+        .cart-link { text-decoration: none; }
+
+        .cart-btn {
+            background-color: yellow;
+            color: rgb(6, 6, 6);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+
+        .cart-btn:hover { background-color: #f28c33; }
+
+        .cart-count {
+            background-color: #ede7e7;
+            border-radius: 50%;
+            padding: 5px 10px;
+            font-weight: bold;
+        }
+
+        .product-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 25px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            height: 450px;
+            text-align: center;
+            padding: 15px;
+            transition: 0.3s;
+        }
+
+        .product-card:hover { transform: translateY(-5px); }
+
+        .product-card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .price {
+            color: #28a745;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .remove-btn { background-color: #dc3545; }
+
+        /* --- PROMO SLIDER CSS START (New Styles) --- */
+        #promo-slider {
+            position: relative;
+            width: 100%;
+            height: 400px; /* Adjust banner height here */
+            overflow: hidden;
+            margin-top:-5px; /* Remove the small gap below the navbar */
+        
+
+        }
+
+        .slide-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex; 
+            align-items: center;
+            opacity: 0; 
+         transition: opacity 0.15s ease-in-out;
+            z-index: 0;
+            margin-top: 15px;
+
+        }
+
+        .slide-item.active {
+            opacity: 1; 
+            z-index: 1; 
+        }
+        
+        .slide-item a {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5; /* Makes the entire slide clickable */
+        }
+
+        .slide-image {
+            width: 50%; /* Image takes half the width */
+            height: 100%;
+            object-fit: cover;
+            margin-left: auto; /* Push the image to the right side */
+        }
+
+        .slide-content {
+            position: relative;
+            width: 50%; /* Content takes half the width */
+            color: white; 
+            padding: 0 50px;
+            z-index: 2; 
+        }
+
+        .slide-content .price {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #ffcc00; /* Highlighted price color */
+        }
+
+        .slide-content .sale-title {
+            font-size: 4em;
+            font-weight: 900;
+            line-height: 1.1;
+            margin: 0 0 10px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .slide-content .details, .slide-content .bank-offer {
+            font-size: 1.2em;
+            margin-top: 15px;
+        }
+        /* --- PROMO SLIDER CSS END --- */
+        
+        .coupon {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background-color:yellow;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            animation: blinkCoupon 2s infinite;
+            z-index: 1000;
+        }
+
+        @keyframes blinkCoupon {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        /* Marquee Slider CSS */
+        .marquee-slider {
+            width: 100%;
+            background: #e9ebd7;
+            padding: 40px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .marquee-slider h2 { text-align: center; margin-bottom: 20px; }
+        .marquee-slider::before, .marquee-slider::after { content: ""; position: absolute; top: 0; width: 150px; height: 100%; z-index: 2; }
+        .marquee-slider::before { left: 0; background: linear-gradient(to left, rgba(233, 235, 215, 0), #e9ebd7); }
+        .marquee-slider::after { right: 0; background: linear-gradient(to right, rgba(233, 235, 215, 0), #e9ebd7); }
+        .marquee-track {
+            display: flex;
+            width: max-content;
+            animation: scroll 30s linear infinite;
+            z-index: 1;
+        }
+        .marquee-track:hover { animation-play-state: paused; }
+        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .marquee-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 280px;
+            margin: 0 15px;
+            text-align: center;
+            padding: 20px;
+        }
+        .marquee-card img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 15px; }
+
+        /* --- FOOTER CSS --- */
+        footer {
+            background: #0f0e0e;
+            color: #eff4ed;
+            padding: 50px 80px 30px;
+            border-top: 1px solid #ddd;
+        }
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+        .footer-logo h2 { font-weight: 600; margin: 0; }
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        .footer-column { min-width: 180px; }
+        .footer-column h3 { font-size: 16px; margin-bottom: 15px; font-weight: 600; }
+        .footer-column ul { list-style: none; padding: 0; }
+        .footer-column ul li { margin-bottom: 8px; }
+        .footer-column ul li a { text-decoration: none; color: #f5f1f1; font-size: 14px; }
+        .footer-column ul li a:hover { text-decoration: underline; }
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            align-items: center;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .social-icons a {
+            color: #efefe9; margin-right: 15px; font-size: 18px; background: #f2f2f2;
+            padding: 10px; border-radius: 8px; transition: 0.3s;
+        }
+        .footer-links a { color: #fbf6f6; text-decoration: none; margin-left: 15px; font-size: 14px; }
+        .footer-links a:hover { text-decoration: underline; }
+        @media (max-width: 768px) {
+            footer { padding: 40px 20px; }
+            .footer-content { flex-direction: column; }
+            .footer-bottom { flex-direction: column; align-items: flex-start; gap: 15px; }
+        }
+        
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">👟 THE SNEAKERS SPHERE</div>
+        <a href="cart.html" class="cart-link">
+            <button class="cart-btn">
+                🛒 My Cart <span class="cart-count" id="cartCount">0</span>
+            </button>
+        </a>
+        <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    </nav>
+    
+    <div id="promo-slider">
+        
+        <div class="slide-item active" style="background-color: #1a1a1a;">
+            <a href="/sale-page.html"></a>
+            <div class="slide-content">
+                <span class="price">FLAT 40% OFF!</span>
+                <h2 class="sale-title">ULTIMATE SNEAKER SALE</h2>
+                <p class="details">Valid: November 7th - 11th</p>
+                <p class="bank-offer">Use code **SPHERE40** at checkout!</p>
+            </div>
+            <img src="Puma Speedcat OG Black White.jpg" alt="Ultimate Sneaker Sale" class="slide-image">
+        </div>
+
+        <div class="slide-item" style="background-color: #004d99;">
+            <a href="/running-shoes.html"></a>
+            <div class="slide-content">
+                <span class="price">New Launch!</span>
+                <h2 class="sale-title">LIGHTNING RUNNER</h2>
+                <p class="details">The fastest shoes on the planet.</p>
+                <p class="bank-offer">Pre-order now and get a FREE gym bag.</p>
+            </div>
+            <img src="adidas Supernova Rise 2 Running Shoes - Blue _ Free Shipping with adiClub _ adidas Canada.jpg" alt="New Running Shoe Launch" class="slide-image">
+        </div>
+
+        <div class="slide-item" style="background-color: #cc0000;">
+            <a href="/jordan-collection.html"></a>
+            <div class="slide-content">
+                <span class="price">Starting ₹19,999</span>
+                <h2 class="sale-title">JORDAN RETRO COLLECTION</h2>
+                <p class="details">Iconic style, timeless appeal.</p>
+                <p class="bank-offer">10% Instant Discount on HDFC Cards*</p>
+            </div>
+            <img src="Dunk SB Low _Chicago_.jpg" alt="Jordan Retro Collection" class="slide-image">
+        </div>
+
+        <div class="slide-item" style="background-color: #2e8b57;">
+            <a href="/casual-shoes.html"></a>
+            <div class="slide-content">
+                <span class="price">Starting ₹3,999</span>
+                <h2 class="sale-title">CASUAL WEAR ESSENTIALS</h2>
+                <p class="details">Comfortable shoes for everyday style.</p>
+                <p class="bank-offer">Free Shipping on all orders above ₹5000</p>
+            </div>
+            <img src="adidas Give The Barreda Decode Lux Trainer An OG Country Makeover.jpg" alt="Casual Wear Essentials" class="slide-image">
+        </div>
+
+    </div>
+    <div class="product-container" id="productList"></div>
+
+    <div class="marquee-slider">
+        <h2>Our Top Brands</h2>
+        <div class="marquee-track" id="marquee-track"></div>
+    </div>
+
+    <div class="coupon">
+        🎉 40% OFF on all shoes!
+    </div>
+
+    <footer>
+        <div class="footer-top">
+            <div class="footer-logo">
+                <h2>My Shoes Shop</h2>
+                <p>Built for style, comfort, and performance</p>
+            </div>
+            <div>
+                <select class="lang-select">
+                    <option>🌐 English</option>
+                    <option>हिन्दी</option>
+                    <option>Español</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>Store Info</h3>
+                <ul>
+                    <li>My Shoes Shop Pvt Ltd</li>
+                    <li>123 Fashion Street</li>
+                    <li>New Delhi, India</li>
+                    <li>📧 support@shoeshop.com</li>
+                    <li>📞 +91 98765 43210</li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Solutions</h3>
+                <ul>
+                    <li><a href="#">Men’s Shoes</a></li>
+                    <li><a href="#">Women’s Shoes</a></li>
+                    <li><a href="#">Kids’ Collection</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>Partnerships</h3>
+                <ul>
+                    <li><a href="#">Affiliate</a></li>
+                    <li><a href="#">Investor</a></li>
+                    <li><a href="#">Franchise</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h3>About</h3>
+                <ul>
+                    <li><a href="#">Contact</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>
+                <p>© 2025 My Shoes Shop — All rights reserved.</p>
+            </div>
+
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-tiktok"></i></a>
+            </div>
+
+            <div class="footer-links">
+                <a href="#">Terms</a>
+                <a href="#">Privacy</a>
+                <a href="#">Cookies</a>
+                <a href="#">Sitemap</a>
+            </div>
+        </div>
+    </footer>
+    <script>
+        // === PROMO SLIDER JAVASCRIPT START ===
+        document.addEventListener('DOMContentLoaded', function () {
+            const slides = document.querySelectorAll('.slide-item');
+            let currentSlide = 0;
+            const slideInterval = 5000; // 5 seconds interval
+
+            function showSlide(index) {
+                // Handle looping back to the start or end
+                if (index >= slides.length) {
+                    index = 0;
+                } else if (index < 0) {
+                    index = slides.length - 1;
+                }
+                
+                currentSlide = index;
+
+                // 1. Remove 'active' class from all slides (hides them)
+                slides.forEach(slide => {
+                    slide.classList.remove('active');
+                });
+
+                // 2. Add 'active' class to the new current slide (shows it)
+                slides[currentSlide].classList.add('active');
+            }
+
+            function nextSlide() {
+                showSlide(currentSlide + 1);
+            }
+
+            // Start the automatic transition
+            setInterval(nextSlide, slideInterval);
+            
+            // Show the first slide immediately on load
+            showSlide(0); 
+        });
+        // === PROMO SLIDER JAVASCRIPT END ===
+        
+        
+        const products = [
+            { id: 1, name: "Nike Air Zoom", price: 30000, img: "Jordan Chicago Jordan Red Jordan Pink Jordan.jpg" },
+            { id: 2, name: "Adidas Ultraboost", price: 15000, img: "download (1).jpg" },
+            { id: 3, name: "Puma RS-X", price: 6000, img: "PUMA KICKS 💯 (1).jpg" },
+            { id: 4, name: "Onituska Tiger Classic", price: 4000, img: "onitsuka.jpg" }
+        ];
+
+        // Marquee Logic (uses the products array)
+        const marqueeTrack = document.getElementById("marquee-track");
+        const marqueeItems = [...products, ...products]; 
+        marqueeItems.forEach((product) => {
+            const cardHTML = `<div class="marquee-card"><img src="${product.img}" alt="${product.name}"><h3>${product.name}</h3></div>`;
+            marqueeTrack.innerHTML += cardHTML;
+        });
+
+        // Cart Logic using localStorage
+        let cart = JSON.parse(localStorage.getItem('shoppingCart')) || {}; 
+        const productList = document.getElementById("productList");
+        const cartCountDisplay = document.getElementById("cartCount");
+
+        function updateCartCount() {
+            const total = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+            cartCountDisplay.textContent = total;
+            localStorage.setItem('shoppingCart', JSON.stringify(cart));
+        }
+        
+        products.forEach((product) => {
+            const card = document.createElement("div");
+            card.classList.add("product-card");
+            card.innerHTML = `
+                <img src="${product.img}" alt="${product.name}">
+                <h3>${product.name}</h3>
+                <p>Stylish and comfortable running shoes.</p>
+                <div class="price">Rs ${product.price.toLocaleString('en-IN')}</div> 
+                <div class="btn-group">
+                    <button class="btn add-btn" data-id="${product.id}">Add</button>
+                    <button class="btn remove-btn" data-id="${product.id}">Remove</button>
+                </div>
+            `;
+            productList.appendChild(card);
+        });
+
+        document.addEventListener("click", (e) => {
+            if (e.target.classList.contains("add-btn")) {
+                const id = e.target.getAttribute("data-id");
+                cart[id] = (cart[id] || 0) + 1;
+                updateCartCount();
+            }
+            if (e.target.classList.contains("remove-btn")) {
+                const id = e.target.getAttribute("data-id");
+                if (cart[id] && cart[id] > 0) {
+                    cart[id]--;
+                    if (cart[id] === 0) delete cart[id];
+                    updateCartCount();
+                }
+            }
+        });
+        
+        updateCartCount();
+    </script>
+</body>
+</html>
