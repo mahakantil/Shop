@@ -12,7 +12,7 @@ pipeline {
         stage('Verify Files') {
             steps {
                 echo 'Files list kar rahe hain...'
-                sh 'ls -la'
+                bat 'dir'
             }
         }
 
@@ -20,8 +20,7 @@ pipeline {
             steps {
                 echo 'Deploying static site...'
                 // yahan apna deploy step daalo, jaise:
-                // sh 'cp -r * /var/www/html/'
-                // ya koi web server (nginx/apache) ka path
+                // bat 'xcopy /E /Y * C:\\inetpub\\wwwroot\\'
             }
         }
     }
